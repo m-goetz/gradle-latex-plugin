@@ -27,6 +27,10 @@ class LatexPlugin implements Plugin<Project> {
         pdflatex.setGroup("LaTeX")
         pdflatex.dependsOn(biber)
         
+        def cleanPdflatex = project.tasks.create("cleanPdflatex", Delete.class)
+        cleanPdflatex.setDescription("Deletes the output of task pdflatex")
+        cleanPdflatex.setGroup("LaTeX")
+        
         project.afterEvaluate {
             def outputDirectory = new File("${project.rootDir}/${project.latex.outputDir}")
             outputDirectory.mkdirs()
@@ -61,6 +65,8 @@ class LatexPlugin implements Plugin<Project> {
             pdflatex.outputs.dir("${outputDirectory}")
             pdflatex.logging.captureStandardOutput LogLevel.INFO
             pdflatex.logging.captureStandardError  LogLevel.ERROR
+            
+            cleanPdflatex.delete outputDirectory.listFiles()
         }
     }
 }
