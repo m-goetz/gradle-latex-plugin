@@ -32,8 +32,11 @@ class LatexPlugin implements Plugin<Project> {
         cleanPdflatex.setGroup("LaTeX")
         
         project.afterEvaluate {
-            def outputDirectory = new File("${project.rootDir}/${project.latex.outputDir}")
+            def outputDirectory = new File("${project.projectDir}/${project.latex.outputDir}")
             outputDirectory.mkdirs()
+            if (project.latex.mainFilename == null) {
+                project.latex.mainFilename = "${project.name}"
+            }
             
             pdflatexFirstRun.commandLine "pdflatex", 
                         "-output-directory=${outputDirectory}", 
