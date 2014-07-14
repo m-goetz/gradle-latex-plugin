@@ -5,6 +5,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.tasks.Exec
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
+import java.io.ByteArrayOutputStream
+import org.gradle.api.logging.LogLevel
 
 class LatexPlugin implements Plugin<Project> {
 
@@ -18,20 +20,47 @@ class LatexPlugin implements Plugin<Project> {
         def biber = project.tasks.create("biber", Exec.class)
         biber.setDescription("Runs biber to process the bibliography.")
         biber.setGroup("LaTeX")
+        biber.dependsOn(pdflatexFirstRun)
+        
+        def pdflatex = project.tasks.create("pdflatex", Exec.class)
+        pdflatex.setDescription("Produces the final pdf from a tex document by executing pdflatex after biber.")
+        pdflatex.setGroup("LaTeX")
+        pdflatex.dependsOn(biber)
         
         project.afterEvaluate {
-            pdflatexFirstRun.commandLine "pdflatex", "-output-directory=../${project.latex.outputDir}", 
+            def outputDirectory = new File("${project.rootDir}/${project.latex.outputDir}")
+            outputDirectory.mkdirs()
+            
+            pdflatexFirstRun.commandLine "pdflatex", 
+                        "-output-directory=${outputDirectory}", 
                         "-synctex=1", "-interaction=nonstopmode", 
                         "${project.latex.mainFilename}.tex"
             pdflatexFirstRun.workingDir("${project.latex.sourceDir}")
             pdflatexFirstRun.inputs.dir("${project.latex.sourceDir}")
-            pdflatexFirstRun.outputs.dir("${project.latex.outputDir}")
+            pdflatexFirstRun.outputs.file("${outputDirectory}/${project.latex.mainFilename}.bcf")
+            pdflatexFirstRun.logging.captureStandardOutput LogLevel.INFO
+            pdflatexFirstRun.logging.captureStandardError  LogLevel.ERROR
             
-            biber.commandLine "biber", "${project.latex.mainFilename}"
-            biber.workingDir("${project.latex.outputDir}")
-            biber.inputs.file("${project.latex.outputDir}/${project.latex.mainFilename}.aux")
-            biber.outputs.files("${project.latex.outputDir}/${project.latex.mainFilename}.bbl", 
-                    "${project.latex.outputDir}/${project.latex.mainFilename}.blg")
+            def inputFile = new File("${outputDirectory}/${project.latex.mainFilename}.bcf")
+            biber.commandLine "biber", "--output_directory=${outputDirectory}", 
+                        "--logfile=${project.latex.mainFilename}","${inputFile}"
+            biber.workingDir("${project.latex.sourceDir}")
+            biber.inputs.file("${outputDirectory}/${project.latex.mainFilename}.bcf")
+            biber.outputs.files("${outputDirectory}/${project.latex.mainFilename}.bbl", 
+                    "${outputDirectory}/${project.latex.mainFilename}.blg")
+            biber.logging.captureStandardOutput LogLevel.INFO
+            biber.logging.captureStandardError  LogLevel.ERROR
+            biber.onlyIf { inputFile.exists() }
+            
+            pdflatex.commandLine "pdflatex", 
+                        "-output-directory=${outputDirectory}", 
+                        "-synctex=1", "-interaction=nonstopmode", 
+                        "${project.latex.mainFilename}.tex"
+            pdflatex.workingDir("${project.latex.sourceDir}")
+            pdflatex.inputs.dir("${project.latex.sourceDir}")
+            pdflatex.outputs.dir("${outputDirectory}")
+            pdflatex.logging.captureStandardOutput LogLevel.INFO
+            pdflatex.logging.captureStandardError  LogLevel.ERROR
         }
     }
 }
