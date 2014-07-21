@@ -18,7 +18,7 @@ buildscript {
         mavenLocal()
     }
     dependencies {
-        classpath group: 'edu.hm.cs.goetz1.gradle.latex:gradle-latex:0.1-SNAPSHOT'
+        classpath 'edu.hm.cs.goetz1.gradle.latex:gradle-latex:0.1-SNAPSHOT'
     }
 }
 
