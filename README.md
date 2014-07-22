@@ -2,7 +2,7 @@
 
 ### Why a Gradle LaTeX plugin?
 
-Truth be told: I wrote this little plugin to improve my poor Groovy skills and also to get into the development of Gradle plugins. Having said that, this plugin doesn't have the aim to cover all possible ways of compiling LaTeX code. It rather provides structure for LaTeX projects when `pdflatex` and `biber` is used. This is because I use `pdflatex` and `biber` to compile my own stuff for university and I was sick of having no predefined structure of my projects.
+Truth be told: I wrote this little plugin to improve my poor Groovy skills and also to get into the development of Gradle plugins. With that said, this plugin doesn't have the aim to cover all possible ways of compiling LaTeX code. It rather provides structure for LaTeX projects when `pdflatex` and `biber` is used. This is because I use `pdflatex` and `biber` to compile my own stuff for university and I was sick of having no predefined structure of my projects.
 
 ### How to get the plugin
 
@@ -49,7 +49,7 @@ As explained earlier, the plugin provides structure for LaTeX projects and there
 ```
 {project-name}/
   ├─ build/
-  │    ├─ latex/
+  │    └─ latex/
   ├─ src/
   │    ├─ {project-name}.tex
   │    ├─ any-subdirectories/
