@@ -1,5 +1,6 @@
 apply plugin: 'groovy'
 apply plugin: 'maven'
+apply plugin: 'eclipse'
 
 version = '0.1-SNAPSHOT'
 group = 'edu.hm.cs.goetz1.gradle.latex'
