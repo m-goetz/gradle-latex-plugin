@@ -6,7 +6,7 @@ Truth be told: I wrote this little plugin to improve my poor Groovy skills and a
 
 ### How to get the plugin
 
-You can get the plugin by cloning the repository and executing `gradle install` from the terminal. This will install the plugin into your local Maven repository. Gradle 2.0 or higher is recommended. Perhaps I'll provide a solution with the Gradle wrapper later on.
+You can get the plugin by cloning the repository and executing `gradle install` from the terminal. This will install the plugin into your local Maven repository. Gradle 2.0 or higher is recommended. It is also possible to use the gradle wrapper.
 
 ### How to use the plugin
 
@@ -91,4 +91,4 @@ The plugin supports incremental builds, which means that tasks are skipped when 
 
 ### What you can _not_ do with the plugin so far
 
-At the moment, only biblatex in combination with biber is supported. You can not compile LaTeX documents using bibtex with this plugin. The plugin is also only tested with TeXLive on Linux (Ubuntu). I try to test it on other platforms in the future.
+At the moment, only biblatex in combination with biber is supported. You can not compile LaTeX documents using bibtex with this plugin. The plugin is tested with TeXLive on Linux (Ubuntu) and with MikTeX on Windows.
