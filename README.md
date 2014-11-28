@@ -52,6 +52,7 @@ As explained earlier, the plugin provides structure for LaTeX projects and there
   │    └─ latex/
   ├─ src/
   │    ├─ {project-name}.tex
+  │    ├─ bibliography/
   │    ├─ any-subdirectories/
   │    └─ ...
   └─ build.gradle
@@ -66,6 +67,14 @@ apply plugin: 'latex'
 
 latex {
     mainFilename = "somethingelse"
+}
+```
+
+If you want to use citations (and biber), your .bib files have to reside in `src/bibliography`, unless you specify it to fit your project structure:
+
+```groovy
+latex {
+    bibFilesDir = "src/somewhereelse/"
 }
 ```
 
