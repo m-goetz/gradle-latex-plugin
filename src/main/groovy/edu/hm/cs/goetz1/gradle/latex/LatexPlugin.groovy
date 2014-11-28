@@ -111,6 +111,7 @@ class LatexPlugin implements Plugin<Project> {
 				"--logfile=${project.latex.mainFilename}","${inputFile}"
 		workingDir("${project.latex.sourceDir}")
 		inputs.file("${outputDirectory}/${project.latex.mainFilename}.bcf")
+        inputs.dir("${project.latex.bibFilesDir}")
 		outputs.files("${outputDirectory}/${project.latex.mainFilename}.bbl",
 				"${outputDirectory}/${project.latex.mainFilename}.blg")
 		onlyIf { inputFile.exists() }
