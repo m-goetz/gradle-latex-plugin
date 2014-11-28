@@ -21,6 +21,7 @@ import org.gradle.api.Task
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.Exec
+import org.gradle.api.GradleException
 
 /**
  * Plugin for Gradle to execute LaTeX builds.
@@ -128,8 +129,22 @@ class LatexPlugin implements Plugin<Project> {
 	}
 
 	private final Closure standardLogging = {
-		logging.captureStandardOutput LogLevel.INFO
-		logging.captureStandardError  LogLevel.ERROR
+        if (logger.isEnabled(LogLevel.INFO)) {
+            logging.captureStandardOutput LogLevel.INFO
+            logging.captureStandardError  LogLevel.ERROR
+        }
+        else {
+            standardOutput = new ByteArrayOutputStream()
+            errorOutput = standardOutput
+        }
+        ignoreExitValue = true
+        
+        doLast {
+            if (execResult.exitValue != 0) {
+                println(standardOutput.toString())
+                throw new GradleException("Could not compile LaTeX document; see process output above.")
+            }
+        }
 	}
 }
 
