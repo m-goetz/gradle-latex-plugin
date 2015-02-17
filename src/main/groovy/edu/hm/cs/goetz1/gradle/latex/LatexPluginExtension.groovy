@@ -20,4 +20,6 @@ class LatexPluginExtension {
 	String mainFilename
 	String outputDir = "build/latex/"
 	String sourceDir = "src/"
+    String svgDir = "src/figures/svg/"
+    String svgOutputDir
 }

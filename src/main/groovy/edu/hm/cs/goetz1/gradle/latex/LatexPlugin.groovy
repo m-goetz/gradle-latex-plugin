@@ -22,6 +22,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.Exec
 import org.gradle.api.GradleException
+import groovy.io.FileType
 
 /**
  * Plugin for Gradle to execute LaTeX builds.
@@ -35,12 +36,15 @@ class LatexPlugin implements Plugin<Project> {
 
 	Project project
 
+    Task inkscapeSvg
 	Task pdflatexPreBuild
 	Task biber
 	Task pdflatex
 	Task cleanPdflatex
 
 	File outputDirectory
+    File svgOutputDirectory
+    File[] svgInputFiles
 
 	void apply(Project project) {
 		project.extensions.create("latex", LatexPluginExtension)
@@ -48,8 +52,17 @@ class LatexPlugin implements Plugin<Project> {
 		createAllTasks()
 
 		project.afterEvaluate {
+            if (project.latex.svgOutputDir == null) {
+                project.latex.svgOutputDir = "${project.latex.outputDir}svg/"
+            }
+                    
 			ensureExistingOutputDirectory()
 			ensureExistingMainFilename()
+            
+            svgInputFiles = findSvgInputFiles()
+            inkscapeSvg.inputs.files(svgInputFiles)
+            inkscapeSvg.outputs.dir(svgOutputDirectory)
+            inkscapeSvg << inkscapeSvgTaskAction
 
 			pdflatexPreBuild.configure pdflatexPreBuildConfig
 			pdflatexPreBuild.configure standardLogging
@@ -65,8 +78,12 @@ class LatexPlugin implements Plugin<Project> {
 	}
 
 	private void createAllTasks() {
+        inkscapeSvg = project.tasks.create("inkscapeSvg")
+        inkscapeSvg.setDescription("Compiles scalable vector graphics (svg) into pdf_tex format.")
+        inkscapeSvg.setGroup("LaTeX")
 		pdflatexPreBuild = createLatexTask("pdflatexPreBuild",
 				"Produces a pdf from a latex document by executing pdflatex once.")
+        pdflatexPreBuild.dependsOn(inkscapeSvg)
 		biber = createLatexTask("biber",
 				"Runs biber to process the bibliography entries in the latex document.")
 		biber.dependsOn(pdflatexPreBuild)
@@ -88,6 +105,9 @@ class LatexPlugin implements Plugin<Project> {
 	private void ensureExistingOutputDirectory() {
 		outputDirectory = new File("${project.projectDir}/${project.latex.outputDir}")
 		outputDirectory.mkdirs()
+        svgOutputDirectory = new File("${project.projectDir}/${project.latex.svgOutputDir}")
+        svgOutputDirectory.mkdirs()
+        svgOutputDirectory.mkdir()
 	}
 
 	private void ensureExistingMainFilename() {
@@ -95,6 +115,42 @@ class LatexPlugin implements Plugin<Project> {
 			project.latex.mainFilename = "${project.name}"
 		}
 	}
+    
+    private File[] findSvgInputFiles() {
+        def list = []
+        def svgDirectory = new File("${project.projectDir}/${project.latex.svgDir}")
+        svgDirectory.eachFileRecurse(FileType.FILES) { file ->
+            if (file.name.endsWith('.svg')) {
+                list << file
+            }
+        }
+        return list
+    }
+    
+    private final Closure inkscapeSvgTaskAction = {
+        def svgDestination = "${svgOutputDirectory}"
+        ProcessBuilder pb;
+        svgInputFiles.each { File file ->
+            def subPath = file.path - project.projectDir - new File(project.latex.svgDir).path - file.name
+            if (subPath.length() >= 3) {
+                subPath = subPath[2..-1]
+            }
+            else {
+                subPath = ""
+            }
+            def fileNameWithoutExt = file.name.replaceFirst(~/\.[^\.]+$/, '')
+            def wholePath = "${svgDestination}\\${subPath}"
+            def wholePathFile = new File(wholePath)
+            while (!wholePathFile.exists()) {
+                wholePathFile.mkdirs()
+                wholePathFile.mkdir()
+                Thread.sleep(300)
+            }
+            pb = new ProcessBuilder(["cmd", "/c", "inkscape -D -z ${file.path} --export-pdf=${wholePath}${fileNameWithoutExt}.pdf --export-latex".toString()]);
+            Process proc = pb.start()
+            proc.waitFor()
+        }
+    }
 
 	private final Closure pdflatexPreBuildConfig = {
 		commandLine "pdflatex",
