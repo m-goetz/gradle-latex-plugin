@@ -83,7 +83,6 @@ class LatexPlugin implements Plugin<Project> {
         inkscapeSvg.setGroup("LaTeX")
 		pdflatexPreBuild = createLatexTask("pdflatexPreBuild",
 				"Produces a pdf from a latex document by executing pdflatex once.")
-        pdflatexPreBuild.dependsOn(inkscapeSvg)
 		biber = createLatexTask("biber",
 				"Runs biber to process the bibliography entries in the latex document.")
 		biber.dependsOn(pdflatexPreBuild)
@@ -134,23 +133,27 @@ class LatexPlugin implements Plugin<Project> {
             def subPath = file.path - project.projectDir - new File(project.latex.svgDir).path - file.name
             if (subPath.length() >= 3) {
                 subPath = subPath[2..-1]
-            }
-            else {
-                subPath = ""
-            }
-            def fileNameWithoutExt = file.name.replaceFirst(~/\.[^\.]+$/, '')
-            def wholePath = "${svgDestination}\\${subPath}"
-            def wholePathFile = new File(wholePath)
-            while (!wholePathFile.exists()) {
-                wholePathFile.mkdirs()
-                wholePathFile.mkdir()
-                Thread.sleep(300)
-            }
-            pb = new ProcessBuilder(["cmd", "/c", "inkscape -D -z ${file.path} --export-pdf=${wholePath}${fileNameWithoutExt}.pdf --export-latex".toString()]);
-            Process proc = pb.start()
-            proc.waitFor()
-        }
-    }
+			}
+			else {
+				subPath = ""
+			}
+			def fileNameWithoutExt = file.name.replaceFirst(~/\.[^\.]+$/, '')
+			def wholePath = "${svgDestination}\\${subPath}"
+			def wholePathFile = new File(wholePath)
+			while (!wholePathFile.exists()) {
+				wholePathFile.mkdirs()
+				wholePathFile.mkdir()
+				Thread.sleep(300)
+			}
+			pb = new ProcessBuilder([
+				"cmd",
+				"/c",
+				"inkscape -D -z ${file.path} --export-pdf=${wholePath}${fileNameWithoutExt}.pdf --export-latex".toString()
+			]);
+			Process proc = pb.start()
+			proc.waitFor()
+		}
+	}
 
 	private final Closure pdflatexPreBuildConfig = {
 		commandLine "pdflatex",
